@@ -1,14 +1,19 @@
 
 # Writng Djngo Views using serializers
+#request.POST -- handles form data, it only works for 'POST'method
+# request.data --handles arbitrary data, works for 'POST', 'PUT' and 'PATCH'
+# rturn Response(data) -- response to content as requested by 
+# restframework provides two wrappers you can use to write API views
+# eg @api_view and APIView
 
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from snippets.models import Snippet
 from snippets.serializer import SnippetSerializer
+from rest_framework.decorators import api_view
 
-@csrf_exempt
-def snippet_list(request):
+@api_view(['GET', 'POST'])
+def snippet_list(request, format=None):
     """
     List all code snippets, or create a new snippet.
     """
@@ -25,8 +30,8 @@ def snippet_list(request):
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
     
-@csrf_exempt
-def snippet_detail(request, pk):
+@api_view(['GET', 'PUT', 'DELETE'])
+def snippet_detail(request, pk, format=None):
     """
     Retrieve, update or delete a code snippet.
     """
