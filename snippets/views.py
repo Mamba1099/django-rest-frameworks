@@ -120,35 +120,68 @@
 
 from snippets.models import Snippet
 from snippets.serializer import SnippetSerializer
-from rest_framework import mixins
+# from rest_framework import mixins
 from rest_framework import generics
+from rest_framework import permissions
 
-class SnippetList(mixins.ListModelMixin, # .list() function
-                  mixins.CreateModelMixin, # .create() function
-                  generics.GenericAPIView):
+# class SnippetList(mixins.ListModelMixin, # .list() function
+#                   mixins.CreateModelMixin, # .create() function
+#                   generics.GenericAPIView):
+#     queryset = Snippet.objects.all()
+#     serializer_class = SnippetSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         return self.list(request, *args, **kwargs)
+
+#     def post(self, request, *args, **kwargs):
+#         return self.create(request, *args, **kwargs)
+    
+# class SnippetDetail(mixins.RetrieveModelMixin, # .retrieve() function
+#                     mixins.UpdateModelMixin,  # .update() function
+#                     mixins.DestroyModelMixin, # .destroy() function
+#                     generics.GenericAPIView):  
+#     queryset = Snippet.objects.all()
+#     serializer_class = SnippetSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         return self.retrieve(request, *args, **kwargs)
+
+#     def put(self, request, *args, **kwargs):
+#         return self.update(request, *args, **kwargs)
+
+#     def delete(self, request, *args, **kwargs):
+#         return self.destroy(request, *args, **kwargs)
+
+"""Using generic class based views"""
+class SnippetList(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+          
+    def perfom_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-    
-class SnippetDetail(mixins.RetrieveModelMixin, # .retrieve() function
-                    mixins.UpdateModelMixin,  # .update() function
-                    mixins.DestroyModelMixin, # .destroy() function
-                    generics.GenericAPIView):  
+
+class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+# from django.contrib.auth.models import User
+# from .serializer import UserSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+# """Read-only views for user representation"""
+# class UserList(generics.ListAPIView):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+#     queryset = User.objects.all() # retrieve data from list view
+#     serializer_class = UserSerializer
     
+#     def perfom_create(self, serializer):
+#         serializer.save(owner=self.request.user)
+
+
+# class UserDetail(generics.RetrieveAPIView):
+#     queryset = User.objects.all() # retrieve data from detail view
+#     serializer_class = UserSerializer
     
