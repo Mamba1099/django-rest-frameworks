@@ -6,11 +6,11 @@
 # restframework provides two wrappers you can use to write API views
 # eg @api_view and APIView
 
-from django.http import HttpResponse, JsonResponse
-from rest_framework.parsers import JSONParser
-from snippets.models import Snippet
-from snippets.serializer import SnippetSerializer
-from rest_framework.decorators import api_view
+# from django.http import HttpResponse, JsonResponse
+# from rest_framework.parsers import JSONParser
+# from snippets.models import Snippet
+# from snippets.serializer import SnippetSerializer
+# from rest_framework.decorators import api_view
 
 # @api_view(['GET', 'POST'])
 # def snippet_list(request, format=None):
@@ -57,64 +57,98 @@ from rest_framework.decorators import api_view
 #         return HttpResponse(status=204)
 
 # writing Api using class based views
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.http import Http404 
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from django.http import Http404 
 
-class SnippetList(APIView):
-    """
-    List all snippets, or create a new snippet.
-    """
-    def get(self, request, format=None):
-        snippets = Snippet.objects.all()
-        serializer = SnippetSerializer(snippets, many=True)
-        return Response(serializer.data)
+# class SnippetList(APIView):
+#     """
+#     List all snippets, or create a new snippet.
+#     """
+#     def get(self, request, format=None):
+#         snippets = Snippet.objects.all()
+#         serializer = SnippetSerializer(snippets, many=True)
+#         return Response(serializer.data)
     
-    def post(self, request, format=None):
-        serializer = SnippetSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status =status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+#     def post(self, request, format=None):
+#         serializer = SnippetSerializer(data = request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status =status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
     
 
-"""Retrieve, update or delete a snippet instance."""""    
-class SnippetDetail(APIView):
-    def get_object(self, pk):
-        """return specific object based on primary key"""
-        try:
-            return Snippet.objects.get(pk=pk)
-        except Snippet.DoesNotExist:
-            raise Http404
+# """Retrieve, update or delete a snippet instance."""""    
+# class SnippetDetail(APIView):
+#     def get_object(self, pk):
+#         """return specific object based on primary key"""
+#         try:
+#             return Snippet.objects.get(pk=pk)
+#         except Snippet.DoesNotExist:
+#             raise Http404
         
-    def get(self, request, pk, format=None):
-        """
-        retrieve detail for a specific result using the GET request
+#     def get(self, request, pk, format=None):
+#         """
+#         retrieve detail for a specific result using the GET request
         
-        """
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet)
-        return Response(serializer.data)
+#         """
+#         snippet = self.get_object(pk)
+#         serializer = SnippetSerializer(snippet)
+#         return Response(serializer.data)
     
     
-    def put(self, request, pk, format=None):
-        """CRUD operation in restful API using PUT method"""
-        # retrieve existing snippet object with the specified primary key
-        snippet = self.get_object(pk)
-        # create serializer instance with retrieved snippet object
-        serializer = SnippetSerializer(snippet, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            # return a response with serialized data of the updated snippet
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def put(self, request, pk, format=None):
+#         """CRUD operation in restful API using PUT method"""
+#         # retrieve existing snippet object with the specified primary key
+#         snippet = self.get_object(pk)
+#         # create serializer instance with retrieved snippet object
+#         serializer = SnippetSerializer(snippet, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             # return a response with serialized data of the updated snippet
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+#     def delete(self, request, pk, format=None):
+#         snippet = self.get_object(pk)
+#         snippet.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
 
+# using mixins
+
+
+from snippets.models import Snippet
+from snippets.serializer import SnippetSerializer
+from rest_framework import mixins
+from rest_framework import generics
+
+class SnippetList(mixins.ListModelMixin, # .list() function
+                  mixins.CreateModelMixin, # .create() function
+                  generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
     
+class SnippetDetail(mixins.RetrieveModelMixin, # .retrieve() function
+                    mixins.UpdateModelMixin,  # .update() function
+                    mixins.DestroyModelMixin, # .destroy() function
+                    generics.GenericAPIView):  
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
     
     
