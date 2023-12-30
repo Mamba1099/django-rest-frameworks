@@ -182,6 +182,7 @@ class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 # class UserDetail(generics.RetrieveAPIView):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 #     queryset = User.objects.all() # retrieve data from detail view
 #     serializer_class = UserSerializer
     

@@ -19,5 +19,13 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('snippets.urls'))
+    path('', include('snippets.urls')),
+]
+
+"""
+URLS for django rest framework login and logout views
+provides a quick way to enable authentication-related feeatures without having to implement your own authentication views
+"""
+urlpatterns += [
+    path('api-auth/', include('rest_framework.urls')),
 ]
