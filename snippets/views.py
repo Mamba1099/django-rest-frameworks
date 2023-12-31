@@ -121,10 +121,10 @@
 from snippets.models import Snippet
 from snippets.serializer import SnippetSerializer
 # from rest_framework import mixins
-from rest_framework import generics, renderers
+from rest_framework import generics, renderers, viewsets
 from rest_framework import permissions
 from snippets.permissions import IsOwnerOrReadOnly
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from .serializer import UserSerializer
@@ -158,37 +158,32 @@ from django.contrib.auth.models import User
 #     def delete(self, request, *args, **kwargs):
 #         return self.destroy(request, *args, **kwargs)
 
-"""Using generic class based views"""
-class SnippetList(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    This ViewSet automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
-          
-    def perfom_create(self, serializer):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer]) # create custom action named highlight and it is used to add any custom endpoints
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
-
-
-class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    queryset = Snippet.objects.all()
-    serializer_class = SnippetSerializer
-
-
-
-"""Read-only views for user representation"""
-class UserList(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = User.objects.all() # retrieve data from list view
-    serializer_class = UserSerializer
-    
-    def perfom_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-
-class UserDetail(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = User.objects.all() # retrieve data from detail view
+"""Viewsets and routers"""
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+    queryset = User.objects.all()
     serializer_class = UserSerializer
 
 # creating end point for root of our Api
