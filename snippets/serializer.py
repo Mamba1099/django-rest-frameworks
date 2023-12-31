@@ -32,18 +32,38 @@ from django.contrib.auth.models import User
 #         return instance
 
 #using model serializer
-class SnippetSerializer(serializers.ModelSerializer):
+# class SnippetSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Snippet
+#         fields = ['id', 'title', 'code', 'linenos', 'language', 'style']
+        
+        
+# # adding endpoints for our User models
+# class UserSerializer(serializers.ModelSerializer):
+#     """Serialize user data"""
+#     snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+    
+#     class Meta:
+#         model = User
+#         fields = ['id', 'username', 'snippets'] # fields from user modelto be included in the serialized representation
+#         owner = serializers.ReadOnlyField(source='owner.username') # read-only field
+
+
+# hyperlinked serializer
+class SnippetSerializer(serializers.HyperlinkedModelSerializer):
+    """serializer for hyperlinked APIs"""
+    owner = serializers.ReadOnlyField(source='owner.username')
+    highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
+
     class Meta:
         model = Snippet
-        fields = ['id', 'title', 'code', 'linenos', 'language', 'style']
-        
-        
-# adding endpoints for our User models
-class UserSerializer(serializers.ModelSerializer):
-    """Serialize user data"""
-    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
-    
+        fields = ['url', 'id', 'highlight', 'owner',
+                  'title', 'code', 'linenos', 'language', 'style']
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'snippets'] # fields from user modelto be included in the serialized representation
-        owner = serializers.ReadOnlyField(source='owner.username') # read-only field
+        fields = ['url', 'id', 'username', 'snippets']

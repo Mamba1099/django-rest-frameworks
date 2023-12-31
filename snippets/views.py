@@ -121,9 +121,14 @@
 from snippets.models import Snippet
 from snippets.serializer import SnippetSerializer
 # from rest_framework import mixins
-from rest_framework import generics
+from rest_framework import generics, renderers
 from rest_framework import permissions
 from snippets.permissions import IsOwnerOrReadOnly
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from .serializer import UserSerializer
+from django.contrib.auth.models import User
 
 # class SnippetList(mixins.ListModelMixin, # .list() function
 #                   mixins.CreateModelMixin, # .create() function
@@ -168,22 +173,37 @@ class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
-# from django.contrib.auth.models import User
-# from .serializer import UserSerializer
 
 
-# """Read-only views for user representation"""
-# class UserList(generics.ListAPIView):
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-#     queryset = User.objects.all() # retrieve data from list view
-#     serializer_class = UserSerializer
+
+"""Read-only views for user representation"""
+class UserList(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = User.objects.all() # retrieve data from list view
+    serializer_class = UserSerializer
     
-#     def perfom_create(self, serializer):
-#         serializer.save(owner=self.request.user)
+    def perfom_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
-# class UserDetail(generics.RetrieveAPIView):
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-#     queryset = User.objects.all() # retrieve data from detail view
-#     serializer_class = UserSerializer
+class UserDetail(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = User.objects.all() # retrieve data from detail view
+    serializer_class = UserSerializer
+
+# creating end point for root of our Api
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'snippets': reverse('snippets-list', request=request, format=format)
+    })
     
+# creating an end point for highlighted snippets
+class SnippetHighlight(generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    renderer_classes = [renderers.StaticHTMLRenderer]
+    
+    def get(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
