@@ -50,15 +50,20 @@ from django.contrib.auth.models import User
 
 
 # hyperlinked serializer
-class SnippetSerializer(serializers.HyperlinkedModelSerializer):
-    """serializer for hyperlinked APIs"""
-    owner = serializers.ReadOnlyField(source='owner.username')
-    highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
+# class SnippetSerializer(serializers.HyperlinkedModelSerializer):
+#     """serializer for hyperlinked APIs"""
+#     owner = serializers.ReadOnlyField(source='owner.username')
+#     highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
 
+#     class Meta:
+#         model = Snippet
+#         fields = ['url', 'id', 'highlight', 'owner',
+#                   'title', 'code', 'linenos', 'language', 'style']
+
+class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
-        fields = ['url', 'id', 'highlight', 'owner',
-                  'title', 'code', 'linenos', 'language', 'style']
+        fields = ["id", "title", "code", "linenos", "language", "style"]
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

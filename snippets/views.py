@@ -158,6 +158,10 @@ from django.contrib.auth.models import User
 #     def delete(self, request, *args, **kwargs):
 #         return self.destroy(request, *args, **kwargs)
 
+class SnippetList(generics.ListCreateAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
 class SnippetViewSet(viewsets.ModelViewSet):
     """
     This ViewSet automatically provides `list`, `create`, `retrieve`,
@@ -167,8 +171,7 @@ class SnippetViewSet(viewsets.ModelViewSet):
     """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly]
+    permission_classes = [permissions.AllowAny ]
 
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer]) # create custom action named highlight and it is used to add any custom endpoints
     def highlight(self, request, *args, **kwargs):
